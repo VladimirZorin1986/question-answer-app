@@ -3,7 +3,7 @@ import sqlite3
 
 
 def connect_db():
-    sql = sqlite3.connect('C:\\SQLite3\\questions.db')
+    sql = sqlite3.connect('questions.db')
     sql.row_factory = sqlite3.Row
     return sql
 
