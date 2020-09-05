@@ -5,7 +5,8 @@ from functools import wraps
 
 def current_user_record():
     user_result = None
-    if user := session.get('user', None):
+    user = session.get('user', None)
+    if user:
         db = get_db()
         user_cur = db.execute('select id, name, password, expert, admin from users where name = ?', [user])
         user_result = user_cur.fetchone()
