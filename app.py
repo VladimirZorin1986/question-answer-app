@@ -2,7 +2,7 @@ from flask import Flask, render_template, g, request, session, redirect, url_for
 from database import get_db
 from werkzeug.security import generate_password_hash, check_password_hash
 from config import Config
-from common_funcs import current_user_record, is_login, restricted
+from common_funcs import current_user_record
 
 app = Flask('__name__')
 app.config.from_object(Config)
@@ -88,8 +88,12 @@ def question(question_id):
 
 
 @app.route('/answer/<question_id>', methods=['GET', 'POST'])
-@restricted('expert')
-def answer(question_id, user):
+def answer(question_id):
+    user = current_user_record()
+    if not user:
+        return redirect(url_for('login'))
+    if not user['expert']:
+        return redirect(url_for('index'))
     db = get_db()
     if request.method == 'POST':
         current_answer = request.form['answer']
@@ -101,8 +105,10 @@ def answer(question_id, user):
 
 
 @app.route('/ask', methods=['GET', 'POST'])
-@is_login
-def ask(user):
+def ask():
+    user = current_user_record()
+    if not user:
+        return redirect(url_for('login'))
     db = get_db()
     if request.method == 'POST':
         new_question = request.form['question']
@@ -116,8 +122,12 @@ def ask(user):
 
 
 @app.route('/unanswered')
-@restricted('expert')
-def unanswered(user):
+def unanswered():
+    user = current_user_record()
+    if not user:
+        return redirect(url_for('login'))
+    if not user['expert']:
+        return redirect(url_for('index'))
     db = get_db()
     db.execute('select questions.id, questions.question_text, users.name from questions '
                'join users on users.id = questions.asked_by_id '
@@ -127,8 +137,12 @@ def unanswered(user):
 
 
 @app.route('/users')
-@restricted('admin')
-def users(user):
+def users():
+    user = current_user_record()
+    if not user:
+        return redirect(url_for('login'))
+    if not user['admin']:
+        return redirect(url_for('index'))
     db = get_db()
     db.execute('select id, name, admin, expert from users')
     user_results = db.fetchall()
@@ -136,8 +150,12 @@ def users(user):
 
 
 @app.route('/promote/<user_id>')
-@restricted('admin')
-def promote(user_id, user):
+def promote(user_id):
+    user = current_user_record()
+    if not user:
+        return redirect(url_for('login'))
+    if not user['admin']:
+        return redirect(url_for('index'))
     db = get_db()
     db.execute('update users set expert = True where id = %s', (user_id,))
     return redirect(url_for('users', user=user))
