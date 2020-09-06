@@ -17,7 +17,7 @@ def close_db(error):
 
 
 @app.route('/')
-def index(user=None):
+def index():
     user = current_user_record()
     db = get_db()
     db.execute('select questions.id as question_id, questions.question_text, '
@@ -51,7 +51,8 @@ def register():
 
 
 @app.route('/login', methods=['GET', 'POST'])
-def login(user=None):
+def login():
+    user = current_user_record()
     error = None
     if request.method == 'POST':
         name = request.form['name']
