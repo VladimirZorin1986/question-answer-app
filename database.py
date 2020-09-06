@@ -13,11 +13,8 @@ def connect_db():
 
 
 def get_db():
-    db = connect_db()
-    if not hasattr(g, 'postgres_db_conn'):
-        g.postgres_db_conn = db[0]
-    if not hasattr(g, 'postgres_db_cur'):
-        g.postgres_db_cur = db[1]
+    if not hasattr(g, 'postgres_db_cur') or not hasattr(g, 'postgres_db_conn'):
+        g.postgres_db_conn, g.postgres_db_cur = connect_db()
     return g.postgres_db_cur
 
 
