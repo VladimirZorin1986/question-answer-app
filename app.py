@@ -17,7 +17,7 @@ def close_db(error):
 
 
 @app.route('/')
-def index():
+def index(user=None):
     user = current_user_record()
     db = get_db()
     db.execute('select questions.id as question_id, questions.question_text, '
@@ -46,13 +46,12 @@ def register():
         db.execute('insert into users (name, password, expert, admin) values (%s, %s, %s, %s)',
                    (name, hashed_password, '0', '0'))
         session['user'] = request.form['name']
-        return redirect(url_for('index'))
+        return redirect(url_for('index', user=user))
     return render_template('register.html', user=user)
 
 
 @app.route('/login', methods=['GET', 'POST'])
-def login():
-    user = current_user_record()
+def login(user=None):
     error = None
     if request.method == 'POST':
         name = request.form['name']
@@ -89,8 +88,7 @@ def question(question_id):
 
 @app.route('/answer/<question_id>', methods=['GET', 'POST'])
 @restricted('expert')
-def answer(question_id):
-    user = current_user_record()
+def answer(question_id, user):
     db = get_db()
     if request.method == 'POST':
         current_answer = request.form['answer']
@@ -103,8 +101,7 @@ def answer(question_id):
 
 @app.route('/ask', methods=['GET', 'POST'])
 @is_login
-def ask():
-    user = current_user_record()
+def ask(user):
     db = get_db()
     if request.method == 'POST':
         new_question = request.form['question']
@@ -119,8 +116,7 @@ def ask():
 
 @app.route('/unanswered')
 @restricted('expert')
-def unanswered():
-    user = current_user_record()
+def unanswered(user):
     db = get_db()
     db.execute('select questions.id, questions.question_text, users.name from questions '
                'join users on users.id = questions.asked_by_id '
@@ -131,8 +127,7 @@ def unanswered():
 
 @app.route('/users')
 @restricted('admin')
-def users():
-    user = current_user_record()
+def users(user):
     db = get_db()
     db.execute('select id, name, admin, expert from users')
     user_results = db.fetchall()
@@ -141,14 +136,13 @@ def users():
 
 @app.route('/promote/<user_id>')
 @restricted('admin')
-def promote(user_id):
+def promote(user_id, user):
     db = get_db()
     db.execute('update users set expert = True where id = %s', (user_id,))
-    return redirect(url_for('users'))
+    return redirect(url_for('users', user=user))
 
 
 @app.route('/logout')
-@is_login
 def logout():
     session.pop('user', None)
     return redirect(url_for('index'))

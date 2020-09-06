@@ -19,10 +19,10 @@ def restricted(role):
         def wrapper(*args, **kwargs):
             user = current_user_record()
             if not user:
-                return redirect(url_for('login'))
+                return redirect(url_for('login', user=user))
             elif not user[role]:
-                return redirect(url_for('index'))
-            return func(*args, **kwargs)
+                return redirect(url_for('index', user=user))
+            return func(*args, user=user, **kwargs)
         return wrapper
     return is_user
 
@@ -30,7 +30,8 @@ def restricted(role):
 def is_login(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if not current_user_record():
-            return redirect(url_for('login'))
-        return func(*args, **kwargs)
+        user = current_user_record()
+        if not user:
+            return redirect(url_for('login', user=user))
+        return func(*args, user=user, **kwargs)
     return wrapper
